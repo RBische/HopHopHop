@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:gravity="center_vertical"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:paddingLeft="@dimen/abc_list_item_padding_horizontal_material"
+    android:paddingRight="@dimen/abc_list_item_padding_horizontal_material"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:contentDescription="@string/icon"
+        android:layout_gravity="center"
+        android:layout_width="@dimen/list_icon"
+        android:layout_height="@dimen/list_icon"
+        android:layout_marginRight="@dimen/abc_list_item_padding_horizontal_material"
+        android:layout_marginEnd="@dimen/abc_list_item_padding_horizontal_material"
+        tools:src="@mipmap/ic_launcher"
+        />
+
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_weight="7"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvBeerName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="@string/sample_beer_name"
+            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"/>
+
+        <TextView
+            android:id="@+id/tvCreationDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/secondary_text"
+            tools:text="@string/sample_creation_date"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_weight="4"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tvBrewery"
+            android:layout_width="@dimen/beer_text_width"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/beer_style_space"
+            android:layout_marginEnd="@dimen/beer_style_space"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/beer_text_size"
+            tools:text="@string/sample_brewery_name"/>
+
+        <TextView
+            android:id="@+id/tvBeerStyle"
+            android:layout_width="@dimen/beer_text_width"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/beer_style_space"
+            android:layout_marginEnd="@dimen/beer_style_space"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/beer_text_size"
+            tools:text="@string/sample_beer_style_name"
+            />
+    </LinearLayout>
+
+</LinearLayout>
