@@ -1,4 +1,4 @@
-package bischof.raphael.hophophop.recyclerview;
+package bischof.raphael.hophophop.reactive;
 
 import android.support.v7.widget.RecyclerView;
 

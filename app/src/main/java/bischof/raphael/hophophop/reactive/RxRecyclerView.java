@@ -1,4 +1,4 @@
-package bischof.raphael.hophophop.recyclerview;
+package bischof.raphael.hophophop.reactive;
 
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;

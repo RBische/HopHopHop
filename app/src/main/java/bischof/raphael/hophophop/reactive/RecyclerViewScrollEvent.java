@@ -1,4 +1,4 @@
-package bischof.raphael.hophophop.recyclerview;
+package bischof.raphael.hophophop.reactive;
 
 
 import android.content.Context;
