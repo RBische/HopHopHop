@@ -2,27 +2,33 @@ package bischof.raphael.hophophop.reactive;
 
 import android.content.Context;
 
+import java.util.List;
+
 import bischof.raphael.hophophop.adapter.PagingAdapter;
-import bischof.raphael.hophophop.model.BeerContainer;
+import bischof.raphael.hophophop.model.BeerContainerResponse;
 import bischof.raphael.hophophop.modules.ApiComponent;
 import bischof.raphael.hophophop.modules.ApiModule;
 import bischof.raphael.hophophop.modules.DaggerApiComponent;
+import io.realm.Realm;
+import io.realm.RealmResults;
 import rx.Observable;
 import rx.functions.Func1;
 
 /**
- * Converts with a flatmap a {@link RecyclerViewScrollEvent} {@link Observable} to a {@link BeerContainer} {@link Observable}
+ * Converts with a flatmap a {@link RecyclerViewScrollEvent} {@link Observable} to a {@link BeerContainerResponse} {@link Observable}
  * Created by biche on 07/02/2016.
  */
-public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observable<BeerContainer>> {
+public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observable<BeerContainerResponse>> {
     private final Context mContext;
+    private final int mStyleId;
 
-    public ScrollToPageLoader(Context mContext) {
+    public ScrollToPageLoader(Context mContext, int styleId) {
         this.mContext = mContext;
+        this.mStyleId = styleId;
     }
 
     @Override
-    public Observable<BeerContainer> call(RecyclerViewScrollEvent scrollEvent) {
+    public Observable<BeerContainerResponse> call(RecyclerViewScrollEvent scrollEvent) {
         int pageToLoad = 1;
         if(scrollEvent.view().getAdapter() instanceof PagingAdapter){
             PagingAdapter adapter = (PagingAdapter)scrollEvent.view().getAdapter();
@@ -33,7 +39,17 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
                 pageToLoad = currentPage-1;
             }
         }
-        ApiComponent component = DaggerApiComponent.builder().apiModule(new ApiModule(mContext)).build();
-        return component.manager().getBeers("595f9b678d9a88434f7e5c72f8cfac38", 30, pageToLoad);
+        Realm realm = Realm.getInstance(mContext);
+        RealmResults<BeerContainerResponse> results = realm.where(BeerContainerResponse.class)
+                .equalTo("styleId", mStyleId)
+                .equalTo("currentPage", pageToLoad)
+                .findAll();
+        if (results.size()>0){
+            List<BeerContainerResponse> response = realm.copyFromRealm(results);
+            return Observable.from(response);
+        }else{
+            ApiComponent component = DaggerApiComponent.builder().apiModule(new ApiModule(mContext)).build();
+            return component.manager().getBeers(mStyleId, pageToLoad);
+        }
     }
 }

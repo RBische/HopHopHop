@@ -12,17 +12,19 @@ import android.widget.TextView;
 import java.util.concurrent.TimeUnit;
 
 import bischof.raphael.hophophop.adapter.BeerAdapter;
-import bischof.raphael.hophophop.model.BeerContainer;
+import bischof.raphael.hophophop.model.BeerContainerResponse;
 import bischof.raphael.hophophop.reactive.RecyclerViewScrollEvent;
 import bischof.raphael.hophophop.reactive.RxRecyclerView;
 import bischof.raphael.hophophop.reactive.ScrollFilter;
 import bischof.raphael.hophophop.reactive.ScrollToPageLoader;
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import io.realm.Realm;
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -32,6 +34,7 @@ import timber.log.Timber;
  */
 public class BeerActivityFragment extends Fragment {
     private Subscription mSubscription;
+    private Subscription mDbSubscription;
     @Bind(R.id.rvBeers)
     public RecyclerView mRvBeers;
     @Bind(R.id.tvBeersEmpty)
@@ -62,15 +65,38 @@ public class BeerActivityFragment extends Fragment {
     private void handleRxLogic() {
         //TODO: Unit test on observables
         // For filter and retrofit call (scroll -> instantation, scroll+&-)
-        //TODO: Move key in apimanager constructor, use dagger to inject ApiManager -> Can easily mock it
         //Creates an observable on RecyclerView scrolling (with handling of back pressure)
         Observable<RecyclerViewScrollEvent> scrollEventsObservable = RxRecyclerView.scrollEvents(mRvBeers).throttleFirst(500, TimeUnit.MILLISECONDS).subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io());
         //Filters RecyclerViewScrollEvent observable to retrieve scroll that fires a page changing
-        scrollEventsObservable = scrollEventsObservable.filter(new ScrollFilter(mLayoutManager));
+        scrollEventsObservable = scrollEventsObservable.throttleFirst(500, TimeUnit.MILLISECONDS).filter(new ScrollFilter(mLayoutManager));
         //Convert scroll to an API call or a DB data fetch
-        Observable<BeerContainer> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext())).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
-        mSubscription = beerContainerObservable.observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.io())
-                .subscribe(new Subscriber<BeerContainer>() {
+        Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext(), 30)).subscribeOn(Schedulers.io());
+        //Creates a connectable observable to subscribe DB saver and adapter call
+        ConnectableObservable<BeerContainerResponse> connObs = beerContainerObservable.publish();
+        mSubscription = connObs.observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<BeerContainerResponse>() {
+                    @Override
+                    public void onCompleted() {
+                        Timber.d("Completed");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Timber.e("Error", e);
+                        BeerAdapter rvAdapter = (BeerAdapter) mRvBeers.getAdapter();
+                        rvAdapter.setLoading(false);
+                    }
+
+                    @Override
+                    public void onNext(BeerContainerResponse beers) {
+                        if (mRvBeers.getAdapter() instanceof BeerAdapter) {
+                            BeerAdapter rvAdapter = (BeerAdapter) mRvBeers.getAdapter();
+                            rvAdapter.changeBeers(beers);
+                        }
+                    }
+                });
+        mDbSubscription = connObs
+                .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override
                     public void onCompleted() {
                         Timber.d("Completed");
@@ -82,13 +108,26 @@ public class BeerActivityFragment extends Fragment {
                     }
 
                     @Override
-                    public void onNext(BeerContainer forecast) {
-                        if (mRvBeers.getAdapter() instanceof BeerAdapter) {
-                            BeerAdapter rvAdapter = (BeerAdapter) mRvBeers.getAdapter();
-                            rvAdapter.changeBeers(forecast);
+                    public void onNext(BeerContainerResponse beers) {
+                        if (beers.isFromNetwork()) {
+                            beers.setFromNetwork(false);
+                            //Sets the styleid
+                            if (beers.getData() != null && beers.getData().size() > 0) {
+                                if (beers.getData().get(0).getStyle() != null) {
+                                    beers.setStyleId(beers.getData().get(0).getStyle().getId());
+                                } else {
+                                    beers.setStyleId(0);
+                                }
+                            }
+                            Realm realm = Realm.getInstance(getContext());
+                            // Copy the object to Realm
+                            realm.beginTransaction();
+                            realm.copyToRealm(beers);
+                            realm.commitTransaction();
                         }
                     }
                 });
+        connObs.connect();
     }
 
     @Override
@@ -96,6 +135,9 @@ public class BeerActivityFragment extends Fragment {
         super.onDestroyView();
         if (mSubscription != null) {
             mSubscription.unsubscribe();
+        }
+        if (mDbSubscription != null){
+            mDbSubscription.unsubscribe();
         }
     }
 }

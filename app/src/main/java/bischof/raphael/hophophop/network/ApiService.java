@@ -1,6 +1,6 @@
 package bischof.raphael.hophophop.network;
 
-import bischof.raphael.hophophop.model.BeerContainer;
+import bischof.raphael.hophophop.model.BeerContainerResponse;
 import retrofit.http.GET;
 import retrofit.http.Query;
 import rx.Observable;
@@ -11,5 +11,5 @@ import rx.Observable;
  */
 public interface ApiService {
     @GET("beers")
-    Observable<BeerContainer> getBeers(@Query("key") String key, @Query("styleId") int styleID, @Query("p") int page);
+    Observable<BeerContainerResponse> getBeers(@Query("key") String key, @Query("styleId") int styleID, @Query("p") int page, @Query("withBreweries") String withBreweries);
 }

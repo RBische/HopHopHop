@@ -14,7 +14,6 @@ public class BeerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_beer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
     }
 
     @Override

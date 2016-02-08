@@ -9,17 +9,22 @@ import android.view.ViewGroup;
 
 import com.squareup.picasso.Picasso;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+
+import java.util.Locale;
+
 import bischof.raphael.hophophop.R;
 import bischof.raphael.hophophop.model.Beer;
-import bischof.raphael.hophophop.model.BeerContainer;
+import bischof.raphael.hophophop.model.BeerContainerResponse;
 
 /**
  * Adapter that shows {@link Beer} and ask for new items to show automatically
  * Created by biche on 06/02/2016.
  */
 public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> implements PagingAdapter {
-    private BeerContainer mBeerContainer;
-    private BeerContainer mFallbackBeerContainer;
+    private BeerContainerResponse mBeerContainerResponse;
+    private BeerContainerResponse mFallbackBeerContainerResponse;
     private final Context mContext;
     private final View mEmptyView;
     private boolean loading = false;
@@ -33,11 +38,11 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
      * Refreshes data and keeps the last data fetched to have the ability to show items between two pages
      * @param container BeerContainer result from BreweryDB
      */
-    public void changeBeers(BeerContainer container){
-        if (mBeerContainer!=null&&mBeerContainer.getCurrentPage()!=container.getCurrentPage()){
-            mFallbackBeerContainer = mBeerContainer;
+    public void changeBeers(BeerContainerResponse container){
+        if (mBeerContainerResponse !=null&& mBeerContainerResponse.getCurrentPage()-1!=container.getCurrentPage()-1){
+            mFallbackBeerContainerResponse = mBeerContainerResponse;
         }
-        mBeerContainer = container;
+        mBeerContainerResponse = container;
         int itemCount = getItemCount();
         mEmptyView.setVisibility(itemCount == 0 ? View.VISIBLE : View.GONE);
         notifyDataSetChanged();
@@ -64,11 +69,16 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
         clearView(holder);
         Beer beer = getItem(position);
         if (beer!=null){
-            holder.mTvCreationDate.setText(beer.getFormattedDate(mContext));
-            holder.mTvBeerName.setText(beer.getName());
-            holder.mTvBeerStyle.setText(beer.getStyleName());
-            holder.mTvBrewery.setText(beer.getBreweryName());
-            Picasso.with(mContext).load(beer.getLabel()).into(holder.mIvIcon);
+            if(beer.getBreweries()!=null&&beer.getBreweries().size()>0){
+                holder.mTvBrewery.setText(beer.getBreweries().get(0).getNameShortDisplay());
+            }
+            Locale current = mContext.getResources().getConfiguration().locale;
+            holder.mTvCreationDate.setText(DateTimeFormat.forPattern("EEE MMM dd yyyy").withLocale(current).print(new DateTime(beer.getCreateDate())));
+            holder.mTvBeerName.setText(beer.getNameDisplay());
+            if (beer.getStyle()!=null){
+                holder.mTvBeerStyle.setText(beer.getStyle().getShortName());
+            }
+            Picasso.with(mContext).load(beer.getLabels().getIcon()).into(holder.mIvIcon);
         }
     }
 
@@ -90,16 +100,24 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
     @CheckResult
     private Beer getItem(int position) {
         int beerContainerPosition;
-        if (mBeerContainer!=null){
-            beerContainerPosition = position-mBeerContainer.getCurrentPage()*BeerContainer.RESULTS_COUNT_PER_PAGE;
+        if (mBeerContainerResponse !=null){
+            beerContainerPosition = position- (mBeerContainerResponse.getCurrentPage()-1)* BeerContainerResponse.RESULTS_COUNT_PER_PAGE;
             if (beerContainerPosition<50&&beerContainerPosition>=0){
-                return mBeerContainer.getBeer(beerContainerPosition);
+                if(mBeerContainerResponse.getData()!=null&& mBeerContainerResponse.getData().size()>position&&position>=0){
+                    return mBeerContainerResponse.getData().get(position);
+                }else{
+                    return null;
+                }
             }
         }
-        if (mFallbackBeerContainer !=null){
-            beerContainerPosition = position- mFallbackBeerContainer.getCurrentPage()*BeerContainer.RESULTS_COUNT_PER_PAGE;
+        if (mFallbackBeerContainerResponse !=null){
+            beerContainerPosition = position- (mFallbackBeerContainerResponse.getCurrentPage()-1)* BeerContainerResponse.RESULTS_COUNT_PER_PAGE;
             if (beerContainerPosition<50&&beerContainerPosition>=0){
-                return mFallbackBeerContainer.getBeer(beerContainerPosition);
+                if(mFallbackBeerContainerResponse.getData()!=null&& mFallbackBeerContainerResponse.getData().size()>position&&position>=0){
+                    return mFallbackBeerContainerResponse.getData().get(position);
+                }else{
+                    return null;
+                }
             }
         }
         return null;
@@ -111,8 +129,8 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
      */
     @Override
     public int getItemCount() {
-        if (mBeerContainer !=null){
-            return mBeerContainer.getTotalResults();
+        if (mBeerContainerResponse !=null){
+            return mBeerContainerResponse.getTotalResults();
         }else{
             return 0;
         }
@@ -124,8 +142,8 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
      */
     @Override
     public int getCurrentPage() {
-        if (mBeerContainer!=null){
-            return mBeerContainer.getCurrentPage()+1;
+        if (mBeerContainerResponse !=null){
+            return mBeerContainerResponse.getCurrentPage();
         }else{
             return 0;
         }

@@ -3,7 +3,7 @@ package bischof.raphael.hophophop.reactive;
 import android.support.v7.widget.LinearLayoutManager;
 
 import bischof.raphael.hophophop.adapter.PagingAdapter;
-import bischof.raphael.hophophop.model.BeerContainer;
+import bischof.raphael.hophophop.model.BeerContainerResponse;
 import rx.functions.Func1;
 
 /**
@@ -34,13 +34,13 @@ public class ScrollFilter implements Func1<RecyclerViewScrollEvent, Boolean> {
             int itemCount = scrollEvent.view().getAdapter().getItemCount();
             if (scrollEvent.dy()>0){
                 int lastVisiblePosition = mLayoutManager.findLastVisibleItemPosition();
-                if (Math.min(lastVisiblePosition + LOADING_THRESHOLD, itemCount) > BeerContainer.RESULTS_COUNT_PER_PAGE*(currentPage)){
+                if (Math.min(lastVisiblePosition + LOADING_THRESHOLD, itemCount) > BeerContainerResponse.RESULTS_COUNT_PER_PAGE*(currentPage)){
                     mustBeLoaded = true;
                 }
             }
             if (scrollEvent.dy()<0){
                 int firstVisiblePosition = mLayoutManager.findFirstVisibleItemPosition();
-                if (Math.max(firstVisiblePosition - LOADING_THRESHOLD,0) <BeerContainer.RESULTS_COUNT_PER_PAGE*(currentPage-1)){
+                if (Math.max(firstVisiblePosition - LOADING_THRESHOLD,0) < BeerContainerResponse.RESULTS_COUNT_PER_PAGE*(currentPage-1)){
                     mustBeLoaded = true;
                 }
             }
