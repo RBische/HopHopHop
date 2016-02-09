@@ -29,9 +29,9 @@ public class GsonTest {
         Gson gson = mComponent.gson();
         DateTimeSerializationMock mock = new DateTimeSerializationMock(new DateTime(0).toDate());
         String serialization = gson.toJson(mock);
-        assertEquals(serialization, "{\"dt\":\"1970-01-01 01:00:00\"}");
+        assertEquals("Serialized : "+serialization, serialization, "{\"dt\":\"1970-01-01 01:00:00\"}");
         DateTimeSerializationMock mockDeserialized = gson.fromJson(serialization, DateTimeSerializationMock.class);
-        assertEquals(mockDeserialized.dt, mock.dt);
+        assertEquals("Deserialized : "+mockDeserialized.dt.toString(),mockDeserialized.dt, mock.dt);
     }
 
     @Test
