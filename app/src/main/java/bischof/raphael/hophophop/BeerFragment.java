@@ -137,7 +137,9 @@ public class BeerFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(PAGE_TO_LOAD, ((BeerAdapter) mRvBeers.getAdapter()).getBeerContainer().getCurrentPage());
+        if (((BeerAdapter) mRvBeers.getAdapter()).getBeerContainer()!=null){
+            outState.putInt(PAGE_TO_LOAD, ((BeerAdapter) mRvBeers.getAdapter()).getBeerContainer().getCurrentPage());
+        }
     }
 
     @Override
