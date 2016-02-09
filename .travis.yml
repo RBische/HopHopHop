@@ -27,4 +27,4 @@ before_install:
   - chmod +x gradlew
 
 script:
-  - gradle build test
+  - gradle build test connectedAndroidTest --continue
