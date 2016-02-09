@@ -41,6 +41,7 @@ public class BeerActivityFragment extends Fragment {
     public TextView mTvBeersEmpty;
 
     private LinearLayoutManager mLayoutManager;
+    private ConnectableObservable<BeerContainerResponse> mConnectableObservable;
 
     public BeerActivityFragment() {
     }
@@ -63,7 +64,6 @@ public class BeerActivityFragment extends Fragment {
     }
 
     private void handleRxLogic() {
-        //TODO: Unit test on observables
         // For filter and retrofit call (scroll -> instantation, scroll+&-)
         //Creates an observable on RecyclerView scrolling (with handling of back pressure)
         Observable<RecyclerViewScrollEvent> scrollEventsObservable = RxRecyclerView.scrollEvents(mRvBeers).throttleFirst(500, TimeUnit.MILLISECONDS).subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io());
@@ -72,8 +72,8 @@ public class BeerActivityFragment extends Fragment {
         //Convert scroll to an API call or a DB data fetch
         Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext(), 30)).subscribeOn(Schedulers.io());
         //Creates a connectable observable to subscribe DB saver and adapter call
-        ConnectableObservable<BeerContainerResponse> connObs = beerContainerObservable.publish();
-        mSubscription = connObs.observeOn(AndroidSchedulers.mainThread())
+        mConnectableObservable = beerContainerObservable.publish();
+        mSubscription = mConnectableObservable.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override
                     public void onCompleted() {
@@ -95,7 +95,7 @@ public class BeerActivityFragment extends Fragment {
                         }
                     }
                 });
-        mDbSubscription = connObs
+        mDbSubscription = mConnectableObservable
                 .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override
                     public void onCompleted() {
@@ -127,7 +127,7 @@ public class BeerActivityFragment extends Fragment {
                         }
                     }
                 });
-        connObs.connect();
+        mConnectableObservable.connect();
     }
 
     @Override
