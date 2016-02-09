@@ -7,4 +7,5 @@
     <string name="sample_beer_style_name">American IPA</string>
     <string name="sample_creation_date">Tue Jan 11 2011</string>
     <string name="api_key" translatable="false">595f9b678d9a88434f7e5c72f8cfac38</string>
+    <string name="app_icon">Icon of the app</string>
 </resources>

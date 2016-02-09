@@ -8,10 +8,9 @@ import org.junit.Test;
 
 import java.util.Date;
 
-import bischof.raphael.hophophop.modules.ApiComponent;
+import bischof.raphael.hophophop.component.AppComponent;
 import bischof.raphael.hophophop.modules.ApiModule;
-import bischof.raphael.hophophop.modules.DaggerApiComponent;
-import bischof.raphael.hophophop.reactive.ScrollFilter;
+import bischof.raphael.hophophop.component.DaggerAppComponent;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 
@@ -22,11 +21,11 @@ import static org.junit.Assert.assertEquals;
  * Created by rbischof on 09/02/2016.
  */
 public class GsonTest {
-    private ApiComponent mComponent;
+    private AppComponent mComponent;
 
     @Before
     public void setUp() {
-        mComponent = DaggerApiComponent.builder().apiModule(new ApiModule(null)).build();
+        mComponent = DaggerAppComponent.builder().apiModule(new ApiModule(null)).build();
     }
 
     @Test

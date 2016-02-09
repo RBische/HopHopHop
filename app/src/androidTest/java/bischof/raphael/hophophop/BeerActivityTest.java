@@ -1,19 +1,17 @@
 package bischof.raphael.hophophop;
 
-import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.support.v7.widget.RecyclerView;
 import android.test.ActivityInstrumentationTestCase2;
-import android.test.TouchUtils;
 
-import bischof.raphael.hophophop.model.BeerContainerResponse;
-import rx.observers.TestSubscriber;
+import bischof.raphael.hophophop.fakedagger.FakeApiModule;
+import bischof.raphael.hophophop.modules.ApiModule;
 
 /**
+ * Tests the behavior of the beer activity
  * Created by rbischof on 22/04/2015.
  */
 public class BeerActivityTest extends ActivityInstrumentationTestCase2<BeerActivity> {
-    private static final long TIMEOUT_IN_MS = 500;
     private BeerActivity mBeerActivity;
     private RecyclerView mRvBeers;
 
@@ -25,13 +23,9 @@ public class BeerActivityTest extends ActivityInstrumentationTestCase2<BeerActiv
     protected void setUp() throws Exception {
         super.setUp();
         setActivityInitialTouchMode(true);
+        HopHopHopApplication.getInstance().setMockMode(new FakeApiModule(HopHopHopApplication.getInstance()));
         mBeerActivity = getActivity();
         mRvBeers = ((RecyclerView) mBeerActivity.findViewById(R.id.rvBeers));
-    }
-
-    public void testDataFetched(){
-        TestSubscriber<BeerContainerResponse> testSubscriber = new TestSubscriber<>();
-        //TODO: Finish writing this test
     }
 
     public void testOrientation(){
@@ -45,5 +39,27 @@ public class BeerActivityTest extends ActivityInstrumentationTestCase2<BeerActiv
             exceptionThrown = e;
         }
         assertNull(exceptionThrown);
+    }
+
+    public void testScroll(){
+        Exception exceptionThrown=null;
+        try {
+            mBeerActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mRvBeers.scrollToPosition(21);
+                }
+            });
+            Thread.sleep(5000);
+        }catch (Exception e){
+            exceptionThrown = e;
+        }
+        assertNull(exceptionThrown);
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        HopHopHopApplication.getInstance().setMockMode(new ApiModule(HopHopHopApplication.getInstance()));
     }
 }

@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import java.util.concurrent.TimeUnit;
 
 import bischof.raphael.hophophop.adapter.BeerAdapter;
@@ -32,7 +31,7 @@ import timber.log.Timber;
  * Fragment containing the list of beers
  * Created by biche on 05/02/2016.
  */
-public class BeerActivityFragment extends Fragment {
+public class BeerFragment extends Fragment {
     private Subscription mSubscription;
     private Subscription mDbSubscription;
     @Bind(R.id.rvBeers)
@@ -41,9 +40,8 @@ public class BeerActivityFragment extends Fragment {
     public TextView mTvBeersEmpty;
 
     private LinearLayoutManager mLayoutManager;
-    private ConnectableObservable<BeerContainerResponse> mConnectableObservable;
 
-    public BeerActivityFragment() {
+    public BeerFragment() {
     }
 
     @Override
@@ -59,12 +57,12 @@ public class BeerActivityFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRvBeers.setLayoutManager(mLayoutManager);
-        mRvBeers.setAdapter(new BeerAdapter(getActivity(), mTvBeersEmpty));
+        BeerAdapter rvAdapter = new BeerAdapter(getActivity(), mTvBeersEmpty);
+        mRvBeers.setAdapter(rvAdapter);
         handleRxLogic();
     }
 
     private void handleRxLogic() {
-        // For filter and retrofit call (scroll -> instantation, scroll+&-)
         //Creates an observable on RecyclerView scrolling (with handling of back pressure)
         Observable<RecyclerViewScrollEvent> scrollEventsObservable = RxRecyclerView.scrollEvents(mRvBeers).throttleFirst(500, TimeUnit.MILLISECONDS).subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io());
         //Filters RecyclerViewScrollEvent observable to retrieve scroll that fires a page changing
@@ -72,8 +70,9 @@ public class BeerActivityFragment extends Fragment {
         //Convert scroll to an API call or a DB data fetch
         Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext(), 30)).subscribeOn(Schedulers.io());
         //Creates a connectable observable to subscribe DB saver and adapter call
-        mConnectableObservable = beerContainerObservable.publish();
-        mSubscription = mConnectableObservable.observeOn(AndroidSchedulers.mainThread())
+        ConnectableObservable<BeerContainerResponse> connectableObservable = beerContainerObservable.publish();
+        //TODO: Handle orientation changes
+        mSubscription = connectableObservable.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override
                     public void onCompleted() {
@@ -95,7 +94,7 @@ public class BeerActivityFragment extends Fragment {
                         }
                     }
                 });
-        mDbSubscription = mConnectableObservable
+        mDbSubscription = connectableObservable
                 .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override
                     public void onCompleted() {
@@ -127,8 +126,15 @@ public class BeerActivityFragment extends Fragment {
                         }
                     }
                 });
-        mConnectableObservable.connect();
+        connectableObservable.connect();
     }
+
+  /*  @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(BEER_CONTAINER, ((BeerAdapter) mRvBeers.getAdapter()).getBeerContainer());
+        outState.putSerializable(LAST_BEER_CONTAINER,((BeerAdapter)mRvBeers.getAdapter()).getLastBeerContainer());
+    }*/
 
     @Override
     public void onDestroyView() {

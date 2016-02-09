@@ -4,11 +4,10 @@ import android.content.Context;
 
 import java.util.List;
 
+import bischof.raphael.hophophop.HopHopHopApplication;
 import bischof.raphael.hophophop.adapter.PagingAdapter;
+import bischof.raphael.hophophop.component.AppComponent;
 import bischof.raphael.hophophop.model.BeerContainerResponse;
-import bischof.raphael.hophophop.modules.ApiComponent;
-import bischof.raphael.hophophop.modules.ApiModule;
-import bischof.raphael.hophophop.modules.DaggerApiComponent;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import rx.Observable;
@@ -48,7 +47,7 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
             List<BeerContainerResponse> response = realm.copyFromRealm(results);
             return Observable.from(response);
         }else{
-            ApiComponent component = DaggerApiComponent.builder().apiModule(new ApiModule(mContext)).build();
+            AppComponent component = HopHopHopApplication.getInstance().getAppComponent();
             return component.manager().getBeers(mStyleId, pageToLoad);
         }
     }

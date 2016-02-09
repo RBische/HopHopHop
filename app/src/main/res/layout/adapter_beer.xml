@@ -7,7 +7,8 @@
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:paddingLeft="@dimen/abc_list_item_padding_horizontal_material"
     android:paddingRight="@dimen/abc_list_item_padding_horizontal_material"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    tools:ignore="PrivateResource">
 
     <ImageView
         android:id="@+id/ivIcon"
@@ -18,7 +19,7 @@
         android:layout_marginRight="@dimen/abc_list_item_padding_horizontal_material"
         android:layout_marginEnd="@dimen/abc_list_item_padding_horizontal_material"
         tools:src="@mipmap/ic_launcher"
-        />
+        tools:ignore="PrivateResource" />
 
     <LinearLayout
         android:layout_height="wrap_content"
@@ -46,31 +47,32 @@
         android:layout_height="wrap_content"
         android:layout_width="0dp"
         android:layout_weight="4"
+        android:paddingLeft="@dimen/beer_style_space"
+        android:paddingStart="@dimen/beer_style_space"
+        android:paddingRight="@dimen/beer_style_space"
+        android:paddingEnd="@dimen/beer_style_space"
         android:orientation="vertical">
         <TextView
             android:id="@+id/tvBrewery"
-            android:layout_width="@dimen/beer_text_width"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginRight="@dimen/beer_style_space"
-            android:layout_marginEnd="@dimen/beer_style_space"
             android:fontFamily="sans-serif-light"
             android:textColor="@color/primary_text"
             android:textSize="@dimen/beer_text_size"
-            tools:text="@string/sample_brewery_name"/>
+            tools:text="@string/sample_brewery_name"
+            tools:ignore="UnusedAttribute" />
 
         <TextView
             android:id="@+id/tvBeerStyle"
-            android:layout_width="@dimen/beer_text_width"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginRight="@dimen/beer_style_space"
-            android:layout_marginEnd="@dimen/beer_style_space"
             android:fontFamily="sans-serif-light"
             android:textColor="@color/secondary_text"
             android:textSize="@dimen/beer_text_size"
             tools:text="@string/sample_beer_style_name"
-            />
+            tools:ignore="UnusedAttribute" />
     </LinearLayout>
 
 </LinearLayout>
