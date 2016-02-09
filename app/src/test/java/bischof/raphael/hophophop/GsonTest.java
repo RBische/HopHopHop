@@ -3,10 +3,12 @@ package bischof.raphael.hophophop;
 import com.google.gson.Gson;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Date;
+import java.util.TimeZone;
 
 import bischof.raphael.hophophop.modules.ApiComponent;
 import bischof.raphael.hophophop.modules.ApiModule;
@@ -27,9 +29,11 @@ public class GsonTest {
     @Test
     public void gson_serializeAndDeserializeDateCorrectly() throws Exception {
         Gson gson = mComponent.gson();
-        DateTimeSerializationMock mock = new DateTimeSerializationMock(new DateTime(0).toDate());
+        DateTime dt = new DateTime(0);
+        dt = dt.plusHours(-dt.getHourOfDay());
+        DateTimeSerializationMock mock = new DateTimeSerializationMock(dt.toDate());
         String serialization = gson.toJson(mock);
-        assertEquals("Serialized : "+serialization, serialization, "{\"dt\":\"1970-01-01 01:00:00\"}");
+        assertEquals("Serialized : "+serialization, serialization, "{\"dt\":\"1970-01-01 00:00:00\"}");
         DateTimeSerializationMock mockDeserialized = gson.fromJson(serialization, DateTimeSerializationMock.class);
         assertEquals("Deserialized : "+mockDeserialized.dt.toString(),mockDeserialized.dt, mock.dt);
     }
