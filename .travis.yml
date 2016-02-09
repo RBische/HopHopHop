@@ -27,4 +27,7 @@ before_install:
   - chmod +x gradlew
 
 script:
-  - gradle build test connectedAndroidTest --continue
+  - gradle build test connectedAndroidTest --info --continue
+
+after_failure:
+  - cat /home/travis/build/RBische/HopHopHop/app/build/reports/tests/debug/index.html
