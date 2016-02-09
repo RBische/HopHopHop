@@ -3,21 +3,24 @@ package bischof.raphael.hophophop;
 import com.google.gson.Gson;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Date;
-import java.util.TimeZone;
 
 import bischof.raphael.hophophop.modules.ApiComponent;
 import bischof.raphael.hophophop.modules.ApiModule;
 import bischof.raphael.hophophop.modules.DaggerApiComponent;
+import bischof.raphael.hophophop.reactive.ScrollFilter;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Tests the behavior of custom {@link Gson} class
+ * Created by rbischof on 09/02/2016.
+ */
 public class GsonTest {
     private ApiComponent mComponent;
 
