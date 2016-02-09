@@ -78,7 +78,9 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
             if (beer.getStyle()!=null){
                 holder.mTvBeerStyle.setText(beer.getStyle().getShortName());
             }
-            Picasso.with(mContext).load(beer.getLabels().getIcon()).into(holder.mIvIcon);
+            if (beer.getLabels()!=null){
+                Picasso.with(mContext).load(beer.getLabels().getIcon()).into(holder.mIvIcon);
+            }
         }
     }
 
@@ -103,8 +105,8 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
         if (mBeerContainerResponse !=null){
             beerContainerPosition = position- (mBeerContainerResponse.getCurrentPage()-1)* BeerContainerResponse.RESULTS_COUNT_PER_PAGE;
             if (beerContainerPosition<50&&beerContainerPosition>=0){
-                if(mBeerContainerResponse.getData()!=null&& mBeerContainerResponse.getData().size()>position&&position>=0){
-                    return mBeerContainerResponse.getData().get(position);
+                if(mBeerContainerResponse.getData()!=null&& mBeerContainerResponse.getData().size()>beerContainerPosition&&beerContainerPosition>=0){
+                    return mBeerContainerResponse.getData().get(beerContainerPosition);
                 }else{
                     return null;
                 }
@@ -113,8 +115,8 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
         if (mFallbackBeerContainerResponse !=null){
             beerContainerPosition = position- (mFallbackBeerContainerResponse.getCurrentPage()-1)* BeerContainerResponse.RESULTS_COUNT_PER_PAGE;
             if (beerContainerPosition<50&&beerContainerPosition>=0){
-                if(mFallbackBeerContainerResponse.getData()!=null&& mFallbackBeerContainerResponse.getData().size()>position&&position>=0){
-                    return mFallbackBeerContainerResponse.getData().get(position);
+                if(mFallbackBeerContainerResponse.getData()!=null&& mFallbackBeerContainerResponse.getData().size()>beerContainerPosition&&beerContainerPosition>=0){
+                    return mFallbackBeerContainerResponse.getData().get(beerContainerPosition);
                 }else{
                     return null;
                 }
