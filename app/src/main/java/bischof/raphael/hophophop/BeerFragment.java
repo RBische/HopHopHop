@@ -32,6 +32,7 @@ import timber.log.Timber;
  * Created by biche on 05/02/2016.
  */
 public class BeerFragment extends Fragment {
+    private static final java.lang.String PAGE_TO_LOAD = "PageToLoad";
     private Subscription mSubscription;
     private Subscription mDbSubscription;
     @Bind(R.id.rvBeers)
@@ -59,19 +60,22 @@ public class BeerFragment extends Fragment {
         mRvBeers.setLayoutManager(mLayoutManager);
         BeerAdapter rvAdapter = new BeerAdapter(getActivity(), mTvBeersEmpty);
         mRvBeers.setAdapter(rvAdapter);
-        handleRxLogic();
+        int pageToLoadFirst = 1;
+        if (savedInstanceState!=null){
+            pageToLoadFirst = savedInstanceState.getInt(PAGE_TO_LOAD);
+        }
+        handleRxLogic(pageToLoadFirst);
     }
 
-    private void handleRxLogic() {
+    private void handleRxLogic(int pageToLoadFirst) {
         //Creates an observable on RecyclerView scrolling (with handling of back pressure)
         Observable<RecyclerViewScrollEvent> scrollEventsObservable = RxRecyclerView.scrollEvents(mRvBeers).throttleFirst(500, TimeUnit.MILLISECONDS).subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io());
         //Filters RecyclerViewScrollEvent observable to retrieve scroll that fires a page changing
         scrollEventsObservable = scrollEventsObservable.throttleFirst(500, TimeUnit.MILLISECONDS).filter(new ScrollFilter(mLayoutManager));
         //Convert scroll to an API call or a DB data fetch
-        Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext(), 30)).subscribeOn(Schedulers.io());
+        Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext(), 30, pageToLoadFirst)).subscribeOn(Schedulers.io());
         //Creates a connectable observable to subscribe DB saver and adapter call
         ConnectableObservable<BeerContainerResponse> connectableObservable = beerContainerObservable.publish();
-        //TODO: Handle orientation changes
         mSubscription = connectableObservable.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override
@@ -82,6 +86,7 @@ public class BeerFragment extends Fragment {
                     @Override
                     public void onError(Throwable e) {
                         Timber.e("Error", e);
+                        mTvBeersEmpty.setText(getString(R.string.sure_connection));
                         BeerAdapter rvAdapter = (BeerAdapter) mRvBeers.getAdapter();
                         rvAdapter.setLoading(false);
                     }
@@ -129,12 +134,11 @@ public class BeerFragment extends Fragment {
         connectableObservable.connect();
     }
 
-  /*  @Override
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(BEER_CONTAINER, ((BeerAdapter) mRvBeers.getAdapter()).getBeerContainer());
-        outState.putSerializable(LAST_BEER_CONTAINER,((BeerAdapter)mRvBeers.getAdapter()).getLastBeerContainer());
-    }*/
+        outState.putInt(PAGE_TO_LOAD, ((BeerAdapter) mRvBeers.getAdapter()).getBeerContainer().getCurrentPage());
+    }
 
     @Override
     public void onDestroyView() {

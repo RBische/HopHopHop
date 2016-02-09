@@ -12,6 +12,7 @@ import com.squareup.picasso.Picasso;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
+import java.io.Serializable;
 import java.util.Locale;
 
 import bischof.raphael.hophophop.R;
@@ -169,4 +170,7 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
         this.loading = loading;
     }
 
+    public BeerContainerResponse getBeerContainer() {
+        return mBeerContainerResponse;
+    }
 }

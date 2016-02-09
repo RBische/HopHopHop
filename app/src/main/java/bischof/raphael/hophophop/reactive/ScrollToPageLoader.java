@@ -20,15 +20,17 @@ import rx.functions.Func1;
 public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observable<BeerContainerResponse>> {
     private final Context mContext;
     private final int mStyleId;
+    private int mPageToLoadFirst;
 
-    public ScrollToPageLoader(Context mContext, int styleId) {
+    public ScrollToPageLoader(Context mContext, int styleId, int pageToLoadFirst) {
         this.mContext = mContext;
         this.mStyleId = styleId;
+        this.mPageToLoadFirst = pageToLoadFirst;
     }
 
     @Override
     public Observable<BeerContainerResponse> call(RecyclerViewScrollEvent scrollEvent) {
-        int pageToLoad = 1;
+        int pageToLoad = mPageToLoadFirst;
         if(scrollEvent.view().getAdapter() instanceof PagingAdapter){
             PagingAdapter adapter = (PagingAdapter)scrollEvent.view().getAdapter();
             int currentPage = adapter.getCurrentPage();
@@ -38,6 +40,7 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
                 pageToLoad = currentPage-1;
             }
         }
+        mPageToLoadFirst = 1;
         Realm realm = Realm.getInstance(mContext);
         RealmResults<BeerContainerResponse> results = realm.where(BeerContainerResponse.class)
                 .equalTo("styleId", mStyleId)
