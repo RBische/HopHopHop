@@ -19,8 +19,11 @@ public class ScrollFilter implements Func1<RecyclerViewScrollEvent, Boolean> {
         this.mLayoutManager = layoutManager;
     }
 
-    public void setForceReload(boolean forceReload) {
-        this.mForceReload = forceReload;
+    /**
+     * Method that shunts the item loading logic and forces the filter to answer true
+     */
+    public void forceReload() {
+        this.mForceReload = true;
     }
 
     @Override

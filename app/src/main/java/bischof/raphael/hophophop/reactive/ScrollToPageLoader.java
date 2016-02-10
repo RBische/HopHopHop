@@ -33,6 +33,10 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
         this.mLayoutManager = layoutManager;
     }
 
+    /**
+     * If set true, force the scroll pager to load all his items from DB and to count at the first call the number of items that it has
+     * @param offlineMode Mode in which you want to switch
+     */
     public void setOfflineMode(boolean offlineMode) {
         this.mOfflineMode = offlineMode;
         if(!offlineMode){
@@ -51,6 +55,11 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
         }
     }
 
+    /**
+     * Returns the page that must be loaded
+     * @param scrollEvent The event that helps to calculate the page to load
+     * @return The page to load
+     */
     private int findPageToLoad(RecyclerViewScrollEvent scrollEvent) {
         int pageToLoad = mPageToLoadFirst;
         if(scrollEvent.view().getAdapter() instanceof PagingAdapter){
@@ -78,6 +87,12 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
         return pageToLoad;
     }
 
+    /**
+     * Method that switch the page load call between already stored data or a new retrofit call
+     * @param pageToLoad The page that needs to be loaded
+     * @param realm An instance of realm db
+     * @return Returns an {@link Observable<BeerContainerResponse>} that contains either a retrofit call or already loaded data from DB
+     */
     private Observable<BeerContainerResponse> getResultFromOnlineMode(int pageToLoad, Realm realm) {
         RealmResults<BeerContainerResponse> results = realm.where(BeerContainerResponse.class)
                 .equalTo("styleId", mStyleId)
@@ -92,6 +107,12 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
         }
     }
 
+    /**
+     *
+     * @param pageToLoad The page that needs to be loaded
+     * @param realm An instance of realm db
+     * @return Returns an {@link Observable<BeerContainerResponse>} that contains data from DB
+     */
     private Observable<BeerContainerResponse> getResultFromOfflineMode(int pageToLoad, Realm realm) {
         RealmResults<BeerContainerResponse> results = realm.where(BeerContainerResponse.class)
                 .equalTo("styleId", mStyleId)

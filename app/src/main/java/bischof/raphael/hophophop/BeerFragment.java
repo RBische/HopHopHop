@@ -89,6 +89,9 @@ public class BeerFragment extends Fragment {
         subscribeToConnectable();
     }
 
+    /**
+     * Subscribes the connectable to an UI subscription (on main thread) and a subscription that saves data in DB (executed on the same thread as the connectable)
+     */
     private void subscribeToConnectable() {
         if (mSubscription != null) {
             mSubscription.unsubscribe();
@@ -158,7 +161,7 @@ public class BeerFragment extends Fragment {
     }
 
     private void switchToOfflineMode(boolean offlineMode) {
-        this.mScrollFilter.setForceReload(true);
+        this.mScrollFilter.forceReload();
         this.mScrollToPageLoader.setOfflineMode(offlineMode);
         this.mRvBeers.scrollToPosition(0);
         subscribeToConnectable();
