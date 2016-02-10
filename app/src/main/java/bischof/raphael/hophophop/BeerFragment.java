@@ -33,6 +33,7 @@ import timber.log.Timber;
  */
 public class BeerFragment extends Fragment {
     private static final java.lang.String PAGE_TO_LOAD = "PageToLoad";
+    private static final int BEER_STYLE_ID = 30;
     private Subscription mSubscription;
     private Subscription mDbSubscription;
     @Bind(R.id.rvBeers)
@@ -69,13 +70,13 @@ public class BeerFragment extends Fragment {
 
     private void handleRxLogic(int pageToLoadFirst) {
         //Creates an observable on RecyclerView scrolling (with handling of back pressure)
-        Observable<RecyclerViewScrollEvent> scrollEventsObservable = RxRecyclerView.scrollEvents(mRvBeers).throttleFirst(500, TimeUnit.MILLISECONDS).subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io());
+        Observable<RecyclerViewScrollEvent> scrollEventsObservable = RxRecyclerView.scrollEvents(mRvBeers).throttleLast(500, TimeUnit.MILLISECONDS).subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io());
         //Filters RecyclerViewScrollEvent observable to retrieve scroll that fires a page changing
         scrollEventsObservable = scrollEventsObservable.throttleFirst(500, TimeUnit.MILLISECONDS).filter(new ScrollFilter(mLayoutManager));
         //Convert scroll to an API call or a DB data fetch
-        Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext(), 30, pageToLoadFirst)).subscribeOn(Schedulers.io());
+        Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext(), BEER_STYLE_ID, pageToLoadFirst, mLayoutManager)).subscribeOn(Schedulers.io());
         //Creates a connectable observable to subscribe DB saver and adapter call
-        ConnectableObservable<BeerContainerResponse> connectableObservable = beerContainerObservable.publish();
+        ConnectableObservable<BeerContainerResponse> connectableObservable = beerContainerObservable.retry().throttleLast(500, TimeUnit.MILLISECONDS).publish();
         mSubscription = connectableObservable.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override

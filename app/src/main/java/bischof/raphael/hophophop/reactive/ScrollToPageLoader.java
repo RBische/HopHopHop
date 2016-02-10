@@ -1,6 +1,7 @@
 package bischof.raphael.hophophop.reactive;
 
 import android.content.Context;
+import android.support.v7.widget.LinearLayoutManager;
 
 import java.util.List;
 
@@ -20,12 +21,14 @@ import rx.functions.Func1;
 public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observable<BeerContainerResponse>> {
     private final Context mContext;
     private final int mStyleId;
+    private final LinearLayoutManager mLayoutManager;
     private int mPageToLoadFirst;
 
-    public ScrollToPageLoader(Context mContext, int styleId, int pageToLoadFirst) {
+    public ScrollToPageLoader(Context mContext, int styleId, int pageToLoadFirst, LinearLayoutManager layoutManager) {
         this.mContext = mContext;
         this.mStyleId = styleId;
         this.mPageToLoadFirst = pageToLoadFirst;
+        this.mLayoutManager = layoutManager;
     }
 
     @Override
@@ -35,9 +38,21 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
             PagingAdapter adapter = (PagingAdapter)scrollEvent.view().getAdapter();
             int currentPage = adapter.getCurrentPage();
             if (scrollEvent.dy()>0){
-                pageToLoad = currentPage+1;
+                int nextPage = ((mLayoutManager.findLastVisibleItemPosition()+ScrollFilter.LOADING_THRESHOLD)/BeerContainerResponse.RESULTS_COUNT_PER_PAGE)+1;
+                //If we scroll too fast down, then we have to load the page currently shown
+                if (nextPage>currentPage+1){
+                    pageToLoad = nextPage-1;
+                }else{
+                    pageToLoad = currentPage+1;
+                }
             }else if (scrollEvent.dy()<0){
-                pageToLoad = currentPage-1;
+                int previousPage = (mLayoutManager.findFirstVisibleItemPosition()-ScrollFilter.LOADING_THRESHOLD)/BeerContainerResponse.RESULTS_COUNT_PER_PAGE;
+                //If we scroll too fast up, then we have to load the page currently shown
+                if (previousPage<currentPage-1){
+                    pageToLoad = previousPage+1;
+                }else{
+                    pageToLoad = currentPage-1;
+                }
             }
         }
         mPageToLoadFirst = 1;

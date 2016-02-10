@@ -11,7 +11,7 @@ import rx.functions.Func1;
  * Created by biche on 07/02/2016.
  */
 public class ScrollFilter implements Func1<RecyclerViewScrollEvent, Boolean> {
-    private static final int LOADING_THRESHOLD = 15;
+    public static final int LOADING_THRESHOLD = 15;
     private final LinearLayoutManager mLayoutManager;
 
     public ScrollFilter(LinearLayoutManager layoutManager) {
