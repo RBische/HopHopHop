@@ -1,5 +1,6 @@
 package bischof.raphael.hophophop;
 
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -8,6 +9,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import bischof.raphael.hophophop.adapter.BeerAdapter;
@@ -34,14 +37,18 @@ import timber.log.Timber;
 public class BeerFragment extends Fragment {
     private static final java.lang.String PAGE_TO_LOAD = "PageToLoad";
     private static final int BEER_STYLE_ID = 30;
-    private Subscription mSubscription;
-    private Subscription mDbSubscription;
+
     @Bind(R.id.rvBeers)
     public RecyclerView mRvBeers;
     @Bind(R.id.tvBeersEmpty)
     public TextView mTvBeersEmpty;
-
     private LinearLayoutManager mLayoutManager;
+
+    private Subscription mSubscription;
+    private Subscription mDbSubscription;
+    private ScrollFilter mScrollFilter;
+    private ScrollToPageLoader mScrollToPageLoader;
+    private ConnectableObservable<BeerContainerResponse> mConnectableObservable;
 
     public BeerFragment() {
     }
@@ -72,12 +79,24 @@ public class BeerFragment extends Fragment {
         //Creates an observable on RecyclerView scrolling (with handling of back pressure)
         Observable<RecyclerViewScrollEvent> scrollEventsObservable = RxRecyclerView.scrollEvents(mRvBeers).throttleLast(500, TimeUnit.MILLISECONDS).subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io());
         //Filters RecyclerViewScrollEvent observable to retrieve scroll that fires a page changing
-        scrollEventsObservable = scrollEventsObservable.throttleFirst(500, TimeUnit.MILLISECONDS).filter(new ScrollFilter(mLayoutManager));
+        mScrollFilter = new ScrollFilter(mLayoutManager);
+        scrollEventsObservable = scrollEventsObservable.throttleFirst(500, TimeUnit.MILLISECONDS).filter(mScrollFilter);
         //Convert scroll to an API call or a DB data fetch
-        Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(new ScrollToPageLoader(getContext(), BEER_STYLE_ID, pageToLoadFirst, mLayoutManager)).subscribeOn(Schedulers.io());
+        mScrollToPageLoader = new ScrollToPageLoader(getContext(), BEER_STYLE_ID, pageToLoadFirst, mLayoutManager);
+        Observable<BeerContainerResponse> beerContainerObservable = scrollEventsObservable.flatMap(mScrollToPageLoader).subscribeOn(Schedulers.io());
         //Creates a connectable observable to subscribe DB saver and adapter call
-        ConnectableObservable<BeerContainerResponse> connectableObservable = beerContainerObservable.retry().throttleLast(500, TimeUnit.MILLISECONDS).publish();
-        mSubscription = connectableObservable.observeOn(AndroidSchedulers.mainThread())
+        mConnectableObservable = beerContainerObservable.throttleLast(500, TimeUnit.MILLISECONDS).publish();
+        subscribeToConnectable();
+    }
+
+    private void subscribeToConnectable() {
+        if (mSubscription != null) {
+            mSubscription.unsubscribe();
+        }
+        if (mDbSubscription != null){
+            mDbSubscription.unsubscribe();
+        }
+        mSubscription = mConnectableObservable.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override
                     public void onCompleted() {
@@ -87,20 +106,23 @@ public class BeerFragment extends Fragment {
                     @Override
                     public void onError(Throwable e) {
                         Timber.e("Error", e);
-                        mTvBeersEmpty.setText(getString(R.string.sure_connection));
                         BeerAdapter rvAdapter = (BeerAdapter) mRvBeers.getAdapter();
                         rvAdapter.setLoading(false);
+                        if (e instanceof IOException) {
+                            switchToOfflineMode(true);
+                        }
+                        mTvBeersEmpty.setText(getString(R.string.sure_connection));
                     }
 
                     @Override
                     public void onNext(BeerContainerResponse beers) {
-                        if (mRvBeers.getAdapter() instanceof BeerAdapter) {
+                        if (beers != null && mRvBeers.getAdapter() instanceof BeerAdapter) {
                             BeerAdapter rvAdapter = (BeerAdapter) mRvBeers.getAdapter();
                             rvAdapter.changeBeers(beers);
                         }
                     }
                 });
-        mDbSubscription = connectableObservable
+        mDbSubscription = mConnectableObservable
                 .subscribe(new Subscriber<BeerContainerResponse>() {
                     @Override
                     public void onCompleted() {
@@ -114,9 +136,9 @@ public class BeerFragment extends Fragment {
 
                     @Override
                     public void onNext(BeerContainerResponse beers) {
-                        if (beers.isFromNetwork()) {
+                        if (beers != null && beers.isFromNetwork()) {
                             beers.setFromNetwork(false);
-                            //Sets the styleid
+                            //Sets the styleid (Would be moved in BeerContainerResponse if RealmObjects supported custom methods)
                             if (beers.getData() != null && beers.getData().size() > 0) {
                                 if (beers.getData().get(0).getStyle() != null) {
                                     beers.setStyleId(beers.getData().get(0).getStyle().getId());
@@ -132,7 +154,22 @@ public class BeerFragment extends Fragment {
                         }
                     }
                 });
-        connectableObservable.connect();
+        mConnectableObservable.connect();
+    }
+
+    private void switchToOfflineMode(boolean offlineMode) {
+        this.mScrollFilter.setForceReload(true);
+        this.mScrollToPageLoader.setOfflineMode(offlineMode);
+        this.mRvBeers.scrollToPosition(0);
+        subscribeToConnectable();
+        if(offlineMode&&getView()!=null){
+            Snackbar.make(getView(),getString(R.string.no_connection_found),Snackbar.LENGTH_LONG).setAction(getString(R.string.cancel), new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    switchToOfflineMode(false);
+                }
+            }).show();
+        }
     }
 
     @Override

@@ -10,4 +10,6 @@
     <string name="app_icon">Icon of the app</string>
     <string name="sure_connection">Please connect to internet to show some beers !</string>
     <string name="date_format">EEE MMM dd yyyy</string>
+    <string name="no_connection_found">No internet connection, switching to offline mode</string>
+    <string name="cancel">Cancel</string>
 </resources>

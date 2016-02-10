@@ -23,6 +23,8 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
     private final int mStyleId;
     private final LinearLayoutManager mLayoutManager;
     private int mPageToLoadFirst;
+    private boolean mOfflineMode = false;
+    private int mNbItemsInOfflineMode = -1;
 
     public ScrollToPageLoader(Context mContext, int styleId, int pageToLoadFirst, LinearLayoutManager layoutManager) {
         this.mContext = mContext;
@@ -31,8 +33,25 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
         this.mLayoutManager = layoutManager;
     }
 
+    public void setOfflineMode(boolean offlineMode) {
+        this.mOfflineMode = offlineMode;
+        if(!offlineMode){
+            mNbItemsInOfflineMode = -1;
+        }
+    }
+
     @Override
     public Observable<BeerContainerResponse> call(RecyclerViewScrollEvent scrollEvent) {
+        int pageToLoad = findPageToLoad(scrollEvent);
+        Realm realm = Realm.getInstance(mContext);
+        if (!mOfflineMode){
+            return getResultFromOnlineMode(pageToLoad, realm);
+        }else{
+            return getResultFromOfflineMode(pageToLoad, realm);
+        }
+    }
+
+    private int findPageToLoad(RecyclerViewScrollEvent scrollEvent) {
         int pageToLoad = mPageToLoadFirst;
         if(scrollEvent.view().getAdapter() instanceof PagingAdapter){
             PagingAdapter adapter = (PagingAdapter)scrollEvent.view().getAdapter();
@@ -56,7 +75,10 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
             }
         }
         mPageToLoadFirst = 1;
-        Realm realm = Realm.getInstance(mContext);
+        return pageToLoad;
+    }
+
+    private Observable<BeerContainerResponse> getResultFromOnlineMode(int pageToLoad, Realm realm) {
         RealmResults<BeerContainerResponse> results = realm.where(BeerContainerResponse.class)
                 .equalTo("styleId", mStyleId)
                 .equalTo("currentPage", pageToLoad)
@@ -67,6 +89,25 @@ public class ScrollToPageLoader implements Func1<RecyclerViewScrollEvent, Observ
         }else{
             AppComponent component = HopHopHopApplication.getInstance().getAppComponent();
             return component.manager().getBeers(mStyleId, pageToLoad);
+        }
+    }
+
+    private Observable<BeerContainerResponse> getResultFromOfflineMode(int pageToLoad, Realm realm) {
+        RealmResults<BeerContainerResponse> results = realm.where(BeerContainerResponse.class)
+                .equalTo("styleId", mStyleId)
+                .findAllSorted("currentPage");
+        if (results.size()>0){
+            if (mNbItemsInOfflineMode==-1){
+                BeerContainerResponse lastContainer = results.get(results.size() - 1);
+                mNbItemsInOfflineMode = (results.size()-1)*BeerContainerResponse.RESULTS_COUNT_PER_PAGE+lastContainer.getData().size();
+                pageToLoad = 1;
+            }
+            BeerContainerResponse currentContainer = realm.copyFromRealm(results.get(pageToLoad-1));
+            currentContainer.setCurrentPage(pageToLoad);
+            currentContainer.setTotalResults(mNbItemsInOfflineMode);
+            return Observable.from(new BeerContainerResponse[]{currentContainer});
+        }else{
+            return Observable.from(new BeerContainerResponse[]{});
         }
     }
 }

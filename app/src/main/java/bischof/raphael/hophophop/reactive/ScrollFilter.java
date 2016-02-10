@@ -13,15 +13,25 @@ import rx.functions.Func1;
 public class ScrollFilter implements Func1<RecyclerViewScrollEvent, Boolean> {
     public static final int LOADING_THRESHOLD = 15;
     private final LinearLayoutManager mLayoutManager;
+    private boolean mForceReload = false;
 
     public ScrollFilter(LinearLayoutManager layoutManager) {
         this.mLayoutManager = layoutManager;
+    }
+
+    public void setForceReload(boolean forceReload) {
+        this.mForceReload = forceReload;
     }
 
     @Override
     public Boolean call(RecyclerViewScrollEvent scrollEvent) {
         if(scrollEvent.view().getAdapter() instanceof PagingAdapter){
             PagingAdapter adapter = (PagingAdapter)scrollEvent.view().getAdapter();
+            if (mForceReload){
+                mForceReload =false;
+                adapter.setLoading(true);
+                return true;
+            }
             boolean mustLoad = mustBeLoaded(scrollEvent.dx(),
                     scrollEvent.dy(),
                     scrollEvent.view().getAdapter().getItemCount(),
@@ -37,9 +47,7 @@ public class ScrollFilter implements Func1<RecyclerViewScrollEvent, Boolean> {
     public boolean mustBeLoaded(int dx, int dy, int itemCount, boolean loading, int currentPage){
         boolean mustBeLoaded = false;
         if (dx==0&&dy==0) {
-            if (itemCount==0){
-                mustBeLoaded = true;
-            }
+            mustBeLoaded = true;
         }else{
             if (dy>0){
                 int lastVisiblePosition = mLayoutManager.findLastVisibleItemPosition();

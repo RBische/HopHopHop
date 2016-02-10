@@ -4,4 +4,6 @@
     <string name="app_icon">Icone de l\'application</string>
     <string name="sure_connection">Connectez vous à internet pour afficher quelques bières !</string>
     <string name="date_format">EEE dd MMM yyyy</string>
+    <string name="no_connection_found">Pas de connexion à internet, bascule en mode hors-ligne </string>
+    <string name="cancel">Annuler</string>
 </resources>
