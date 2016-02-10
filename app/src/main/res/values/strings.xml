@@ -1,12 +1,13 @@
 <resources>
     <string name="app_name" translatable="false">Hop hop hop</string>
+    <string name="api_key" translatable="false">595f9b678d9a88434f7e5c72f8cfac38</string>
     <string name="empty_beer_list">No beers to show</string>
     <string name="icon">Label of the beer</string>
     <string name="sample_beer_name">\"Galactic Wrath\" IPA</string>
     <string name="sample_brewery_name">Stony Creek Beer</string>
     <string name="sample_beer_style_name">American IPA</string>
     <string name="sample_creation_date">Tue Jan 11 2011</string>
-    <string name="api_key" translatable="false">595f9b678d9a88434f7e5c72f8cfac38</string>
     <string name="app_icon">Icon of the app</string>
     <string name="sure_connection">Please connect to internet to show some beers !</string>
+    <string name="date_format">EEE MMM dd yyyy</string>
 </resources>

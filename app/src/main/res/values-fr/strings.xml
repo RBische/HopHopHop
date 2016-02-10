@@ -1,0 +1,7 @@
+<resources>
+    <string name="empty_beer_list">Aucune bière à afficher</string>
+    <string name="icon">Etiquette de la bière</string>
+    <string name="app_icon">Icone de l\'application</string>
+    <string name="sure_connection">Connectez vous à internet pour afficher quelques bières !</string>
+    <string name="date_format">EEE dd MMM yyyy</string>
+</resources>

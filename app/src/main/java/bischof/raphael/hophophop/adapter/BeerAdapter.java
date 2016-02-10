@@ -74,7 +74,7 @@ public class BeerAdapter extends RecyclerView.Adapter<BeerRowViewHolder> impleme
                 holder.mTvBrewery.setText(beer.getBreweries().get(0).getNameShortDisplay());
             }
             Locale current = mContext.getResources().getConfiguration().locale;
-            holder.mTvCreationDate.setText(DateTimeFormat.forPattern("EEE MMM dd yyyy").withLocale(current).print(new DateTime(beer.getCreateDate())));
+            holder.mTvCreationDate.setText(DateTimeFormat.forPattern(mContext.getString(R.string.date_format)).withLocale(current).print(new DateTime(beer.getCreateDate())));
             holder.mTvBeerName.setText(beer.getNameDisplay());
             if (beer.getStyle()!=null){
                 holder.mTvBeerStyle.setText(beer.getStyle().getShortName());
