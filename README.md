@@ -7,25 +7,25 @@ You can find below a screenshot of the app.
 
 Prerequisites
 --------------
-Android studio v1.5.1
-Android SDK 23
-Build Tools version 23.0.2
+* Android studio v1.5.1
+* Android SDK 23
+* Build Tools version 23.0.2
 
 Libraries used
 --------------
-Retrofit 2.0.0
-RxAndroid 1.0.1
-RxBinding-RecyclerView 0.3.0
-Dagger 2.0.1
-ButterKnife 7.0.1
-Timber 2.4.2
-Joda-Time 2.9.2
-Picasso 2.5.2
-AppCompat v7 23.1.1
-Design 23.1.1
+* Retrofit 2.0.0
+* RxAndroid 1.0.1
+* RxBinding-RecyclerView 0.3.0
+* Dagger 2.0.1
+* ButterKnife 7.0.1
+* Timber 2.4.2
+* Joda-Time 2.9.2
+* Picasso 2.5.2
+* AppCompat v7 23.1.1
+* Design 23.1.1
 
 For tests : 
-Mockito 1.10.19
+* Mockito 1.10.19
 
 
 Getting Started
